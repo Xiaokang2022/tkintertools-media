@@ -48,7 +48,7 @@ import tkintertools as tkt
 import tkintertools.media as media
 
 root = tkt.Tk(title="tkintertools-media")
-cv = media.VideoCanvas(root, name="Canvas", keep_ratio="min", free_anchor=True)
+cv = media.VideoCanvas(root, keep_ratio="min", free_anchor=True)
 cv.place(width=1280, height=720, x=640, y=360, anchor="center")
 cv.play("your_video_file.mp4")
 root.mainloop()

@@ -13,6 +13,21 @@ Changelog / 更新日志
 > * 🟠 **Deprecated / 弃用**
 > * 🟤 **Refactored / 重构**
 
+🔖 `1.0.1`
+-----------
+
+🕓 *Release Date / 发布日期 : 2024-09-16*
+
+🟢 **Added / 新增**
+
+- The `VideoCanvas` class adds an initialization parameter `max_fps` to limit the maximum fps of the video  
+类 `VideoCanvas` 新增初始化参数 `max_fps` 来限制视频的最大帧率
+
+🔵 **Optimized / 优化**
+
+- Greatly optimized performance and improved video stuttering  
+极大地优化了性能，改善了视频卡顿的问题
+
 🔖 `1.0.0`
 -----------
 
