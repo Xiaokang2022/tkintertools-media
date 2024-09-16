@@ -26,10 +26,12 @@ class VideoCanvas(tkintertools.core.containers.Canvas):
         *,
         control: bool = False,
         max_fps: int = 30,
+        click_pause: bool = True,
         expand: typing.Literal["", "x", "y", "xy"] = "xy",
         zoom_item: bool = True,
         keep_ratio: typing.Literal["min", "max"] | None = None,
         free_anchor: bool = False,
+        autoplay: bool = True,
         name: str = "Canvas",
         **kwargs,
     ) -> None:
@@ -37,11 +39,13 @@ class VideoCanvas(tkintertools.core.containers.Canvas):
         * `master`: parent widget
         * `control`: whether to enable the built-in UI
         * `max_fps`: limitation of FPS
+        * `click_pause`: whether to pause when clicked
         * `expand`: the mode of expand, `x` is horizontal, and `y` is vertical
         * `zoom_item`: whether or not to scale its items
         * `keep_ratio`: the mode of aspect ratio, `min` follows the minimum
         value, `max` follows the maximum value
         * `free_anchor`: whether the anchor point is free-floating
+        * `autoplay`: whether to start playing the video automatically
         * `kwargs`: compatible with other parameters of class `tkinter.Canvas`
         """
         tkintertools.core.containers.Canvas.__init__(
@@ -49,9 +53,11 @@ class VideoCanvas(tkintertools.core.containers.Canvas):
             keep_ratio=keep_ratio, free_anchor=free_anchor, name=name, **kwargs)
         self.delay = 1000 // max_fps
         self._control = control
+        self._autoplay = autoplay
         self._video = self.create_image(0, 0, anchor="nw")
-        self.bind("<ButtonRelease-1>",
-                  lambda _: self.media.toggle_pause(), "+")
+        if click_pause:
+            self.bind("<ButtonRelease-1>",
+                      lambda _: self.media.toggle_pause(), "+")
 
     def _initialization(self) -> None:
         tkintertools.core.containers.Canvas._initialization(self)
@@ -91,11 +97,13 @@ class VideoCanvas(tkintertools.core.containers.Canvas):
         """Play the video"""
         self.media = ffpyplayer.player.MediaPlayer(file, autoexit=True)
         self.metadata = self.media.get_metadata()
+        if not self._autoplay:
+            self.media.set_pause(True)  # Pause the video if autoplay is False
         self._refresh()
 
     def _control_ui(self) -> None:
         """UI for bottom bar"""
-        self.bottom = tkintertools.Frame(
+        self.bottom = tkintertools.core.containers.Frame(
             self, zoom_item=True, free_anchor=True)
         self.bottom.place(width=1280, height=60, y=self._size[1])
         self.t = tkintertools.standard.widgets.Text(
