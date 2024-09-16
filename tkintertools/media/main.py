@@ -26,7 +26,7 @@ class VideoCanvas(tkintertools.core.containers.Canvas):
         *,
         control: bool = False,
         max_fps: int = 30,
-        auto_play: bool = True,
+        auto_play: bool = False,
         click_pause: bool = True,
         expand: typing.Literal["", "x", "y", "xy"] = "xy",
         zoom_item: bool = True,
