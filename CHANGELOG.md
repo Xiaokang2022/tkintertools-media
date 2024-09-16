@@ -18,6 +18,11 @@ Changelog / 更新日志
 
 🕓 *Release Date / 发布日期 : 2024-09-16*
 
+🟢 **Added / 新增**
+
+- Class `VideoCanvas` adds parameters `click_pause` and `auto_play`  
+类 `VideoCanvas` 新增参数 `click_pause` 和 `auto_play`
+
 🟡 **Changed / 变更**
 
 - The parameter `max_fps` of the class `VideoCanvas` has been changed to `interval`  
