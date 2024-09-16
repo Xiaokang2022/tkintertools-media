@@ -13,6 +13,35 @@ Changelog / 更新日志
 > * 🟠 **Deprecated / 弃用**
 > * 🟤 **Refactored / 重构**
 
+🔖 `1.0.3`
+-----------
+
+🟢 **Added / 新增**
+
+- Added a left-click function to pause  
+新增了鼠标左键点击可以暂停的功能
+
+- Added a function for the mouse wheel to adjust the volume  
+新增了鼠标滚轮可以调节音量的功能
+
+- Added the display of video playback progress information  
+新增视频播放进度信息的显示
+
+🟡 **Changed / 变更**
+
+- Change the progress bar to a slider bar and you can drag the video progress  
+将进度条更改为滑动条，可以拖动视频进度了
+
+🟣 **Fixed / 修复**
+
+- Fixed a bug where video playback would cause continuous stuttering  
+修复了视频播放完成时会产生持续卡顿的 bug
+
+🔵 **Optimized / 优化**
+
+- Optimize the UI  
+优化 UI
+
 🔖 `1.0.2`
 -----------
 

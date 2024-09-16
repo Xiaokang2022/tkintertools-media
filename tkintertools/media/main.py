@@ -50,13 +50,18 @@ class VideoCanvas(tkintertools.core.containers.Canvas):
         self.delay = 1000 // max_fps
         self._control = control
         self._video = self.create_image(0, 0, anchor="nw")
+        self.bind("<ButtonRelease-1>",
+                  lambda _: self.media.toggle_pause(), "+")
 
     def _initialization(self) -> None:
         tkintertools.core.containers.Canvas._initialization(self)
         if self._control:
-            self.control()
+            self._control_ui()
             self.bind("<Enter>", lambda _: self._an(True), "+")
             self.bind("<Leave>", lambda _: self._an(False), "+")
+            self.bind("<MouseWheel>", lambda event: self.v.set(
+                self.v.get() + 0.05*((1, -1)[event.delta < 0]),
+                callback=True), "+")
 
     def _refresh(self) -> None:
         """Refresh the canvas"""
@@ -70,9 +75,17 @@ class VideoCanvas(tkintertools.core.containers.Canvas):
             self.itemconfigure(self._video, image=self.frame)
             if self._control:
                 self.p.set(pts / self.metadata["duration"])
+                self.t.set(f"{self._tiem_convert(
+                    pts)} / {self._tiem_convert(self.metadata["duration"])}")
         elif val == 'eof' and self._control:
+            self.media.set_pause(True)
             self.p.set(1)
         self.schedule = self.after(self.delay, self._refresh)
+
+    def _tiem_convert(self, t: float) -> str:
+        """Convert seconds to a special format"""
+        m, s = divmod(round(t), 60)
+        return f"{m:02d}:{s:02d}"
 
     def play(self, file: str) -> None:
         """Play the video"""
@@ -80,25 +93,39 @@ class VideoCanvas(tkintertools.core.containers.Canvas):
         self.metadata = self.media.get_metadata()
         self._refresh()
 
-    def control(self) -> None:
-        """"""
+    def _control_ui(self) -> None:
+        """UI for bottom bar"""
         self.bottom = tkintertools.Frame(
             self, zoom_item=True, free_anchor=True)
         self.bottom.place(width=1280, height=60, y=self._size[1])
+        self.t = tkintertools.standard.widgets.Text(
+            self.bottom, (215, 30), text="00:00 / 00:00", anchor="center")
         tkintertools.standard.widgets.Button(
             self.bottom, (10, 10), text="播放 / 暂停",
             command=self.media.toggle_pause)
-        self.p = tkintertools.standard.widgets.ProgressBar(
-            self.bottom, (150, 20), (800, 20))
+        self.p = tkintertools.standard.widgets.Slider(
+            self.bottom, (300, 15), (650, 30),
+            command=lambda p: (
+                self.media.seek(p*self.metadata["duration"], relative=False),
+                self.t.set(f"{self._tiem_convert(
+                    p*self.metadata["duration"])} / {
+                        self._tiem_convert(self.metadata["duration"])}")))
         tkintertools.standard.widgets.Text(
             self.bottom, (1000, 30), text="音量", anchor="center")
-        tkintertools.standard.widgets.Slider(
-            self.bottom, (1050, 15), (200, 30),
+        self.v = tkintertools.standard.widgets.Slider(
+            self.bottom, (1040, 15), (150, 30),
             command=self.media.set_volume, default=1)
+        tkintertools.standard.widgets.ToggleButton(
+            self.bottom, (1210, 10), text="全屏",
+            command=self.master.fullscreen
+        )
 
     def _an(self, up: bool) -> None:
-        """"""
+        """Animation for bottom bar"""
         k = -1 if up else 1
-        tkintertools.animation.animations.MoveTkWidget(
-            self.bottom, 250, (0, self.bottom._size[1]*k), fps=60,
-            controller=tkintertools.animation.controllers.smooth).start()
+        dy = 0 if up else self.bottom._size[1]
+        tkintertools.animation.animations.Animation(
+            250, tkintertools.animation.controllers.smooth, fps=60,
+            callback=lambda p: self.bottom.place(
+                y=self._size[1] + self.bottom._size[1]*p*k - dy)
+        ).start()

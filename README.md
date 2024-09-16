@@ -44,7 +44,9 @@ pip install tkintertools-media
 
 The sample video is downloaded from: http://www.sample-videos.com/
 
-![preview](./preview.png)
+![preview-1](./preview-1.png)
+
+![preview-2](./preview-2.png)
 
 <details><summary>Code</summary>
 
@@ -53,7 +55,7 @@ import tkintertools as tkt
 import tkintertools.media as media
 
 root = tkt.Tk(title="tkintertools-media")
-cv = media.VideoCanvas(root, keep_ratio="min", free_anchor=True, control=True, max_fps=60)
+cv = media.VideoCanvas(root, keep_ratio="min", free_anchor=True, control=True)
 cv.place(width=1280, height=720, x=640, y=360, anchor="center")
 cv.play("your_video_file.mp4")
 root.mainloop()
