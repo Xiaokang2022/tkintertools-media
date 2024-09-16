@@ -13,6 +13,21 @@ Changelog / 更新日志
 > * 🟠 **Deprecated / 弃用**
 > * 🟤 **Refactored / 重构**
 
+🔖 `1.0.6`
+-----------
+
+🕓 *Release Date / 发布日期 : 2024-09-16*
+
+🟣 **Fixed / 修复**
+
+- Fixed a bug where the video playback speed was abnormal  
+修复了视频播放速度异常的 bug
+
+🔴 **Removed / 移除**
+
+- Removed the `interval` parameter for `VideoCanvas`  
+移除了 `VideoCanvas` 的 `interval` 参数
+
 🔖 `1.0.5`
 -----------
 

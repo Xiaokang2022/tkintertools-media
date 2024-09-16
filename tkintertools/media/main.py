@@ -1,5 +1,6 @@
 """APIs for playing videos"""
 
+import time
 import typing
 
 import ffpyplayer.player
@@ -24,7 +25,6 @@ class VideoCanvas(tkintertools.core.containers.Canvas):
             | tkintertools.core.containers.Canvas",
         *,
         control: bool = False,
-        interval: int = 10,
         auto_play: bool = False,
         click_pause: bool = True,
         expand: typing.Literal["", "x", "y", "xy"] = "xy",
@@ -37,9 +37,6 @@ class VideoCanvas(tkintertools.core.containers.Canvas):
         """
         * `master`: parent widget
         * `control`: whether to enable the built-in UI
-        * `interval`: time interval(ms) at which frame information is queried,
-        the minimum requirement is 1, and too small may cause the window to lag
-        when dragging it
         * `auto_play`: whether to start playing the video automatically
         * `click_pause`: whether to pause when clicked
         * `expand`: the mode of expand, `x` is horizontal, and `y` is vertical
@@ -52,7 +49,6 @@ class VideoCanvas(tkintertools.core.containers.Canvas):
         tkintertools.core.containers.Canvas.__init__(
             self, master, expand=expand, zoom_item=zoom_item,
             keep_ratio=keep_ratio, free_anchor=free_anchor, name=name, **kwargs)
-        self.interval = interval
         self._control = control
         self._auto_play = auto_play
         self._video = self.create_image(0, 0, anchor="nw")
@@ -78,6 +74,7 @@ class VideoCanvas(tkintertools.core.containers.Canvas):
 
     def _refresh(self) -> None:
         """Refresh the canvas"""
+        start = time.time()
         frame, val = self.media.get_frame()
         if val != 'eof' and frame is not None:
             img, pts = frame
@@ -89,10 +86,17 @@ class VideoCanvas(tkintertools.core.containers.Canvas):
                 self.p.set(pts / self.metadata["duration"])
                 self.t.set("%s / %s" % (self._tiem_convert(pts),
                            self._tiem_convert(self.metadata["duration"])))
+            fps = self.metadata["frame_rate"][0]/self.metadata["frame_rate"][1]
+            interval = round(1000/fps - (time.time()-start) * 1000)
         elif val == 'eof' and self._control:
             self.media.set_pause(True)
             self.p.set(1)
-        self.schedule = self.after(self.interval, self._refresh)
+            interval = 0
+        else:
+            interval = 0
+        if interval <= 0:
+            interval = 1
+        self.schedule = self.after(interval, self._refresh)
 
     def _tiem_convert(self, t: float) -> str:
         """Convert seconds to a special format"""
