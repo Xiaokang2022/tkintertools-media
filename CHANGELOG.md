@@ -13,6 +13,22 @@ Changelog / 更新日志
 > * 🟠 **Deprecated / 弃用**
 > * 🟤 **Refactored / 重构**
 
+🔖 `1.0.2`
+-----------
+
+🟢 **Added / 新增**
+
+- The `VideoCanvas` class adds the initialization parameter `control` to enable the built-in UI  
+类 `VideoCanvas` 新增初始化参数 `control` 来开启内置的 UI
+
+🟡 **Changed / 变更**
+
+- Change the default value of the initialization parameter `max_fps` of the class `VideoCanvas` to 30  
+修改类 `VideoCanvas` 的初始化参数 `max_fps` 的默认值到 30
+
+- Change the default value of the initialization parameter `zoom_item` of the class `VideoCanvas` to `True`  
+修改类 `VideoCanvas` 的初始化参数 `zoom_item` 的默认值到 `True`
+
 🔖 `1.0.1`
 -----------
 
