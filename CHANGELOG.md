@@ -13,8 +13,20 @@ Changelog / 更新日志
 > * 🟠 **Deprecated / 弃用**
 > * 🟤 **Refactored / 重构**
 
+🔖 `1.0.4`
+-----------
+
+🕓 *Release Date / 发布日期 : 2024-09-16*
+
+🟤 **Refactored / 重构**
+
+- Modified the syntax of some of the code to be compatible with Python 3.10  
+修改部分代码的语法，以兼容 Python 3.10
+
 🔖 `1.0.3`
 -----------
+
+🕓 *Release Date / 发布日期 : 2024-09-16*
 
 🟢 **Added / 新增**
 
@@ -44,6 +56,8 @@ Changelog / 更新日志
 
 🔖 `1.0.2`
 -----------
+
+🕓 *Release Date / 发布日期 : 2024-09-16*
 
 🟢 **Added / 新增**
 

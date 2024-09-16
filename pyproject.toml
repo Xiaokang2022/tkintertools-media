@@ -30,7 +30,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Typing :: Typed",
 ]
-dependencies = ["tkintertools==3.0.0rc2", "pillow>=10.0.0", "ffpyplayer>=4.5.0"]
+dependencies = ["tkintertools>=3.0.0rc2", "pillow>=10.0.0", "ffpyplayer>=4.5.0"]
 dynamic = ["version"]
 
 [project.urls]

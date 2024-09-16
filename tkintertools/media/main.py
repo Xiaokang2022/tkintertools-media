@@ -75,8 +75,8 @@ class VideoCanvas(tkintertools.core.containers.Canvas):
             self.itemconfigure(self._video, image=self.frame)
             if self._control:
                 self.p.set(pts / self.metadata["duration"])
-                self.t.set(f"{self._tiem_convert(
-                    pts)} / {self._tiem_convert(self.metadata["duration"])}")
+                self.t.set("%s / %s" % (self._tiem_convert(pts),
+                           self._tiem_convert(self.metadata["duration"])))
         elif val == 'eof' and self._control:
             self.media.set_pause(True)
             self.p.set(1)
@@ -107,9 +107,9 @@ class VideoCanvas(tkintertools.core.containers.Canvas):
             self.bottom, (300, 15), (650, 30),
             command=lambda p: (
                 self.media.seek(p*self.metadata["duration"], relative=False),
-                self.t.set(f"{self._tiem_convert(
-                    p*self.metadata["duration"])} / {
-                        self._tiem_convert(self.metadata["duration"])}")))
+                self.t.set("%s / %s" % (
+                    self._tiem_convert(p*self.metadata["duration"]),
+                    self._tiem_convert(self.metadata["duration"])))))
         tkintertools.standard.widgets.Text(
             self.bottom, (1000, 30), text="音量", anchor="center")
         self.v = tkintertools.standard.widgets.Slider(
