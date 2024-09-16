@@ -2,7 +2,6 @@
 
 import typing
 
-import ffpyplayer.pic
 import ffpyplayer.player
 import PIL.Image
 import tkintertools.animation.animations
@@ -68,16 +67,21 @@ class VideoCanvas(tkintertools.core.containers.Canvas):
             self.bind("<MouseWheel>", lambda event: self.v.set(
                 self.v.get() + 0.05*((1, -1)[event.delta < 0]),
                 callback=True), "+")
+        self.media.set_size(*self._size)
+
+    def _re_place(self) -> None:
+        tkintertools.core.containers.Canvas._re_place(self)
+        self.update_idletasks()
+        self.media.set_size(*self._size)
 
     def _refresh(self) -> None:
         """Refresh the canvas"""
         frame, val = self.media.get_frame()
         if val != 'eof' and frame is not None:
             img, pts = frame
-            img = ffpyplayer.pic.SWScale(
-                *img.get_size(), img.get_pixel_format(), *self._size).scale(img)
             self.frame = tkintertools.toolbox.enhanced.PhotoImage(
-                PIL.Image.frombytes("RGB", self._size, img.to_bytearray()[0]))
+                PIL.Image.frombytes(
+                    "RGB", img.get_size(), img.to_bytearray()[0]))
             self.itemconfigure(self._video, image=self.frame)
             if self._control:
                 self.p.set(pts / self.metadata["duration"])
