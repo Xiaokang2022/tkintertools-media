@@ -13,6 +13,21 @@ Changelog / 更新日志
 > * 🟠 **Deprecated / 弃用**
 > * 🟤 **Refactored / 重构**
 
+🔖 `1.0.5`
+-----------
+
+🕓 *Release Date / 发布日期 : 2024-09-16*
+
+🟡 **Changed / 变更**
+
+- The parameter `max_fps` of the class `VideoCanvas` has been changed to `interval`  
+类 `VideoCanvas` 的参数 `max_fps` 变更为 `interval`
+
+🔵 **Optimized / 优化**
+
+- Improved performance of `VideoCanvas`  
+改善 `VideoCanvas` 的性能
+
 🔖 `1.0.4`
 -----------
 
