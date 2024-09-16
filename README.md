@@ -1,8 +1,13 @@
 <h1 align="center">tkintertools-media</h1>
 
-<p align="center">extension package for tkintertools to media</p>
+<p align="center">Extension package for tkintertools to media</p>
 
 <p align="center">
+<a href="https://github.com/Xiaokang2022/tkintertools-media/releases"><img alt="Version" src="https://img.shields.io/github/v/release/Xiaokang2022/tkintertools-media?include_prereleases&logo=github&label=Version" title="Latest Version" /></a>
+<a href="https://pypistats.org/packages/tkintertools-media"><img alt="Downloads" src="https://img.shields.io/pypi/dm/tkintertools-media?label=Downloads&logo=pypi&logoColor=skyblue" title="Downloads" /></a>
+<a href="https://pepy.tech/project/tkintertools-media"><img alt="Total Downloads" src="https://img.shields.io/pepy/dt/tkintertools-media?logo=pypi&logoColor=gold&label=Total%20Downloads" title="Total Downloads" /></a>
+<a href="https://github.com/Xiaokang2022/tkintertools-media"><img alt="Size" src="https://img.shields.io/github/languages/code-size/Xiaokang2022/tkintertools-media?label=Size&logo=github" title="Code Size"/></a>
+<br/>
 <a href="https://github.com/Xiaokang2022/tkintertools-media/watchers"><img alt="Watchers" src="https://img.shields.io/github/watchers/Xiaokang2022/tkintertools-media?label=Watchers&logo=github&style=flat" title="Watchers" /></a>
 <a href="https://github.com/Xiaokang2022/tkintertools-media/forks"><img alt="Forks" src="https://img.shields.io/github/forks/Xiaokang2022/tkintertools-media?label=Forks&logo=github&style=flat" title="Forks" /></a>
 <a href="https://github.com/Xiaokang2022/tkintertools-media/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/Xiaokang2022/tkintertools-media?label=Stars&color=gold&logo=github&style=flat" title="Stars" /></a>
