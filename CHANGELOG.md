@@ -13,6 +13,16 @@ Changelog / 更新日志
 > * 🟠 **Deprecated / 弃用**
 > * 🟤 **Refactored / 重构**
 
+🔖 `1.1.0`
+-----------
+
+🕓 *Release Date / 发布日期 : 2024-09-20*
+
+🟤 **Refactored / 重构**
+
+- The whole is refactored, and the specific API is shown in [Documentation](https://xiaokang2022.github.io/tkintertools-docs/3.0/documents/media/)  
+整体全部重构，具体 API 见[文档](https://xiaokang2022.github.io/tkintertools-docs/3.0/documents/media/)
+
 🔖 `1.0.6`
 -----------
 

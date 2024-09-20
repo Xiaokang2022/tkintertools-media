@@ -1,34 +1,88 @@
 """APIs for playing videos"""
 
+import abc
+import platform
 import time
 import typing
 
+import ffpyplayer.pic
 import ffpyplayer.player
 import PIL.Image
-import tkintertools.animation.animations
-import tkintertools.animation.controllers
-import tkintertools.core.containers
-import tkintertools.standard.widgets
-import tkintertools.toolbox.enhanced
+import PIL.ImageTk
+import typing_extensions
+from tkintertools.animation import animations, controllers
+from tkintertools.core import containers, virtual
+from tkintertools.standard import images, widgets
+from tkintertools.style import manager
+from tkintertools.toolbox import enhanced
+
+from . import icons
 
 __all__ = [
     "VideoCanvas",
 ]
 
 
-class VideoCanvas(tkintertools.core.containers.Canvas):
+class _CustomizedWidget(virtual.Widget, abc.ABC):
+    """Provide the ability to switch icon theme"""
+
+    def _bind(self, *, icon: str) -> None:
+        """process some thing about theme"""
+        self._icon = icon
+        self._theme(manager.get_color_mode() == "dark")
+        manager.register_event(self._theme)
+
+    def _theme(self, dark: bool) -> None:
+        """Switch the icon theme of the widget"""
+        if self._images:
+            self._images[0].destroy()
+        images.StillImage(
+            self, image=self.master.master._icons[
+                self._icon]["dark" if dark else "light"])
+
+
+class _FullscreenToggleButton(widgets.ToggleButton, _CustomizedWidget):
+    """Customized toggle button for function of fullscreen"""
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, name="ToggleButton", **kwargs)
+        self._bind(icon="fullscreen")
+
+
+class _AudioImage(widgets.Image, _CustomizedWidget):
+    """Customized image widget for displaying audio icon"""
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, name="Image", **kwargs)
+        self._bind(icon="audio")
+
+
+class _PlayButton(widgets.Button, _CustomizedWidget):
+    """Customized Button for the ability to play or pause the video"""
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, name="Button", **kwargs)
+        self._bind(icon="play")
+
+    def _toggle(self) -> None:
+        """Force to change the icon image"""
+        self._icon = "pause" if self._icon == "play" else "play"
+        self._theme(manager.get_color_mode() == "dark")
+        self._images[0].zoom((1, 1))
+
+
+class VideoCanvas(containers.Canvas):
     """A canvas that is scalable and playable for videos"""
 
     def __init__(
         self,
-        master: "tkintertools.core.containers.Tk \
-            | tkintertools.core.containers.Canvas",
+        master: "containers.Tk | containers.Canvas",
         *,
-        control: bool = False,
-        auto_play: bool = False,
+        controls: bool = False,
+        loop: bool = False,
         click_pause: bool = True,
         expand: typing.Literal["", "x", "y", "xy"] = "xy",
-        zoom_item: bool = True,
+        zoom_item: bool = False,
         keep_ratio: typing.Literal["min", "max"] | None = None,
         free_anchor: bool = False,
         name: str = "Canvas",
@@ -37,7 +91,6 @@ class VideoCanvas(tkintertools.core.containers.Canvas):
         """
         * `master`: parent widget
         * `control`: whether to enable the built-in UI
-        * `auto_play`: whether to start playing the video automatically
         * `click_pause`: whether to pause when clicked
         * `expand`: the mode of expand, `x` is horizontal, and `y` is vertical
         * `zoom_item`: whether or not to scale its items
@@ -46,104 +99,189 @@ class VideoCanvas(tkintertools.core.containers.Canvas):
         * `free_anchor`: whether the anchor point is free-floating
         * `kwargs`: compatible with other parameters of class `tkinter.Canvas`
         """
-        tkintertools.core.containers.Canvas.__init__(
+        containers.Canvas.__init__(
             self, master, expand=expand, zoom_item=zoom_item,
             keep_ratio=keep_ratio, free_anchor=free_anchor, name=name, **kwargs)
-        self._control = control
-        self._auto_play = auto_play
-        self._video = self.create_image(0, 0, anchor="nw")
+
+        self._icons = icons.parse()
+        self._player = self._schedule = None
+        self._video = self.create_image(0, 0, anchor="center")
+        self._controls = controls
+        self._loop = loop
+
         if click_pause:
-            self.bind("<ButtonRelease-1>",
-                      lambda _: self.media.toggle_pause(), "+")
+            self.bind("<ButtonRelease-1>", lambda _: (
+                self._player.toggle_pause() if self._player else None,
+                self._play_button._toggle()), "+")
 
+    @typing_extensions.override
     def _initialization(self) -> None:
-        tkintertools.core.containers.Canvas._initialization(self)
-        if self._control:
-            self._control_ui()
-            self.bind("<Enter>", lambda _: self._an(True), "+")
-            self.bind("<Leave>", lambda _: self._an(False), "+")
-            self.bind("<MouseWheel>", lambda event: self.v.set(
-                self.v.get() + 0.05*((1, -1)[event.delta < 0]),
-                callback=True), "+")
-        self.media.set_size(*self._size)
+        containers.Canvas._initialization(self)
+        if self._controls:
+            self._load_control_bar()
+            self.bind("<Motion>", lambda _: self._display_control_bar(True), "+")
+            self.bind("<Leave>", lambda _: self._display_control_bar(False), "+")
+            if platform.system() == "Linux":
+                self.bind("<Button-4>", lambda _: self._volume_bar.set(
+                    self._volume_bar.get() + 0.05, callback=True), "+")
+                self.bind("<Button-5>", lambda _: self._volume_bar.set(
+                    self._volume_bar.get() - 0.05, callback=True), "+")
+            else:
+                self.bind("<MouseWheel>", lambda event: self._volume_bar.set(
+                    self._volume_bar.get() + 0.05*((1, -1)[event.delta < 0]),
+                    callback=True), "+")
 
+    @typing_extensions.override
     def _re_place(self) -> None:
-        tkintertools.core.containers.Canvas._re_place(self)
+        containers.Canvas._re_place(self)
         self.update_idletasks()
-        self.media.set_size(*self._size)
+        if self._player is not None:
+            self._resize()
 
-    def _refresh(self) -> None:
+    def open(
+        self,
+        file: str,
+        *,
+        auto_play: bool = False,
+        muted: bool = False,
+    ) -> None:
+        """
+        Open a video file and play
+
+        * `file`: the video file path
+        * `auto_play`: whether to start playing the video automatically
+        * `muted`: whether or not to mute the video at the start
+        """
+        if self._player is not None:
+            raise RuntimeError("The player is in use.")
+
+        self.update_idletasks()
+        self._player = ffpyplayer.player.MediaPlayer(file, autoexit=True)
+        self._play({"auto_play": auto_play, "muted": muted})
+
+    def close(self) -> None:
+        """Close the video player"""
+        if self._player is None:
+            return
+        self.after_cancel(self._schedule)
+        self._player.close_player()
+        self._player = self._schedule = None
+
+    def _play(self, init_prams: dict[str, bool] | None = None) -> None:
         """Refresh the canvas"""
         start = time.time()
-        frame, val = self.media.get_frame()
-        if val != 'eof' and frame is not None:
+        frame, val = self._player.get_frame()
+
+        if val != "eof" and frame is not None:
+            if init_prams is not None:
+                self._player.set_pause(not init_prams["auto_play"])
+                self._player.set_volume(not init_prams["muted"])
+                self._resize()
+                if self._controls:
+                    self._volume_bar.set(not init_prams["muted"])
+                    if init_prams["auto_play"]:
+                        self._play_button._toggle()
+                init_prams = None
             img, pts = frame
-            self.frame = tkintertools.toolbox.enhanced.PhotoImage(
-                PIL.Image.frombytes(
-                    "RGB", img.get_size(), img.to_bytearray()[0]))
-            self.itemconfigure(self._video, image=self.frame)
-            if self._control:
-                self.p.set(pts / self.metadata["duration"])
-                self.t.set("%s / %s" % (self._tiem_convert(pts),
-                           self._tiem_convert(self.metadata["duration"])))
-            fps = self.metadata["frame_rate"][0]/self.metadata["frame_rate"][1]
+            self.__frame = enhanced.PhotoImage(PIL.Image.frombytes(
+                "RGB", img.get_size(), img.to_bytearray()[0]))
+            self.itemconfigure(self._video, image=self.__frame)
+            if self._controls:
+                self._refresh_control_bar(pts)
+            fps = self._player.get_metadata()["frame_rate"][0] / \
+                self._player.get_metadata()["frame_rate"][1]
             interval = round(1000/fps - (time.time()-start) * 1000)
-        elif val == 'eof' and self._control:
-            self.media.set_pause(True)
-            self.p.set(1)
+        elif val == 'eof':
+            if self._controls:
+                self._progress_bar.set(not self._loop)
+            if self._loop:
+                self._player.seek(0, relative=False)
+            else:
+                self._player.set_pause(True)
+                self._play_button._toggle()
             interval = 0
         else:
             interval = 0
-        if interval <= 0:
-            interval = 1
-        self.schedule = self.after(interval, self._refresh)
 
-    def _tiem_convert(self, t: float) -> str:
-        """Convert seconds to a special format"""
-        m, s = divmod(round(t), 60)
-        return f"{m:02d}:{s:02d}"
+        self._schedule = self.after(
+            interval if interval > 0 else 1, self._play,
+            init_prams if init_prams is not None else None)
 
-    def play(self, file: str) -> None:
-        """Play the video"""
-        self.media = ffpyplayer.player.MediaPlayer(file, autoexit=True)
-        self.metadata = self.media.get_metadata()
-        if not self._auto_play:
-            self.media.set_pause(True)
-        self._refresh()
+    def _resize(self) -> None:
+        """Resize the size of video"""
+        self.coords(self._video, self._size[0]/2, self._size[1]/2)
+        size = self._player.get_metadata()["src_vid_size"]
+        if self._size[0] / self._size[1] <= size[0] / size[1]:
+            self._player.set_size(width=self._size[0])
+        else:
+            self._player.set_size(height=self._size[1])
 
-    def _control_ui(self) -> None:
+    def _refresh_control_bar(self, pts: float) -> None:
+        """Refresh the stat of the control bar"""
+        self._progress_bar.set(pts/self._player.get_metadata()["duration"])
+        self._timer.set("%02d:%02d / %02d:%02d" % (
+            *divmod(round(pts), 60),
+            *divmod(round(self._player.get_metadata()["duration"]), 60)))
+
+    def _load_control_bar(self) -> None:
         """UI for bottom bar"""
-        self.bottom = tkintertools.core.containers.Frame(
+        k = self._size[0] / 1280
+        self._control_bar = containers.Frame(
             self, zoom_item=True, free_anchor=True)
-        self.bottom.place(width=1280, height=60, y=self._size[1])
-        self.t = tkintertools.standard.widgets.Text(
-            self.bottom, (215, 30), text="00:00 / 00:00", anchor="center")
-        tkintertools.standard.widgets.Button(
-            self.bottom, (10, 10), text="播放 / 暂停",
-            command=self.media.toggle_pause)
-        self.p = tkintertools.standard.widgets.Slider(
-            self.bottom, (300, 15), (650, 30),
+        self._control_bar.place(
+            width=self._size[0], height=60*k, y=self._size[1])
+        self._play_button = _PlayButton(
+            self._control_bar, (10*k, 10*k), (40*k, 40*k),
+            command=lambda: (
+                self._player.toggle_pause() if self._player else None,
+                self._play_button._toggle())
+        )
+        self._timer = widgets.Text(
+            self._control_bar, (130*k, 30*k), text="00:00 / 00:00",
+            anchor="center", fontsize=round(20*k))
+        self._progress_bar = widgets.Slider(
+            self._control_bar, (215*k, 15*k), (750*k, 30*k),
             command=lambda p: (
-                self.media.seek(p*self.metadata["duration"], relative=False),
-                self.t.set("%s / %s" % (
-                    self._tiem_convert(p*self.metadata["duration"]),
-                    self._tiem_convert(self.metadata["duration"])))))
-        tkintertools.standard.widgets.Text(
-            self.bottom, (1000, 30), text="音量", anchor="center")
-        self.v = tkintertools.standard.widgets.Slider(
-            self.bottom, (1040, 15), (150, 30),
-            command=self.media.set_volume, default=1)
-        tkintertools.standard.widgets.ToggleButton(
-            self.bottom, (1210, 10), text="全屏",
-            command=self.master.fullscreen
+                self._player.seek(p*self._player.get_metadata()
+                                  ["duration"], relative=False),
+                self._timer.set("%02d:%02d / %02d:%02d" % (
+                    *divmod(round(
+                        self._player.get_metadata()["duration"]*p), 60),
+                    *divmod(round(
+                        self._player.get_metadata()["duration"]), 60))))
+            if self._player else None)
+        _AudioImage(self._control_bar, (1000*k, 30*k), anchor="center")
+        self._volume_bar = widgets.Slider(
+            self._control_bar, (1035*k, 15*k), (180*k, 30*k), default=1,
+            command=lambda p: self._player.set_volume(p)
+            if self._player else None)
+        _FullscreenToggleButton(
+            self._control_bar, (1230*k, 10*k), (40*k, 40*k),
+            command=self.master.fullscreen, fontsize=round(20*k)
         )
 
-    def _an(self, up: bool) -> None:
+    def _display_control_bar(self, value: bool) -> None:
         """Animation for bottom bar"""
-        k = -1 if up else 1
-        dy = 0 if up else self.bottom._size[1]
-        tkintertools.animation.animations.Animation(
-            250, tkintertools.animation.controllers.smooth, fps=60,
-            callback=lambda p: self.bottom.place(
-                y=self._size[1] + self.bottom._size[1]*p*k - dy)
+        if value:
+            if getattr(self, "_slide", None) is not None:
+                self.after_cancel(self._slide)
+                self._slide = self.after(
+                    5000, self._display_control_bar, False)
+                return
+            k, dy = -1, 0
+            self._slide = self.after(5000, self._display_control_bar, False)
+        else:
+            rx, ry = self.winfo_rootx(), self.winfo_rooty() + self._size[1]
+            px, py = self.winfo_pointerxy()
+            if -self._control_bar._size[1] <= py-ry <= 0 <= px-rx <= self._size[0]:
+                return self._display_control_bar(True)
+            k, dy = 1, self._control_bar._size[1]
+            self.after_cancel(self._slide)
+            self.configure(cursor="none")
+            self._slide = None
+
+        animations.Animation(
+            250, controllers.smooth, fps=60,
+            callback=lambda p: self._control_bar.place(
+                y=self._size[1] + self._control_bar._size[1]*p*k - dy)
         ).start()

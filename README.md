@@ -30,35 +30,32 @@
     </a>
 </p>
 
-📦 Installation / 安装
-----------------------
+📦 Installation
+----------------
 
-```
+```bash
 pip install tkintertools-media
 ```
 
 > [!IMPORTANT]  
 > `tkintertools`: https://github.com/Xiaokang2022/tkintertools
 
-### 👀 Preview / 预览
+### 👀 Preview
 
-The sample video is downloaded from: http://www.sample-videos.com/
+> [!WARNING]  
+> The sample video from: https://github.com/Xiaokang2022/tkintertools-demos/tree/main/assets/videos. Please note that the video is for testing purposes only and may not be used for commercial purposes!
 
 ![preview-1](./preview-1.png)
 
 ![preview-2](./preview-2.png)
-
-<details><summary>Code</summary>
 
 ```python
 import tkintertools as tkt
 import tkintertools.media as media
 
 root = tkt.Tk(title="tkintertools-media")
-cv = media.VideoCanvas(root, keep_ratio="min", free_anchor=True, control=True)
+cv = media.VideoCanvas(root, free_anchor=True, keep_ratio="min", controls=True)
 cv.place(width=1280, height=720, x=640, y=360, anchor="center")
-cv.play("your_video_file.mp4")
+cv.open("your_video_file.mp4")
 root.mainloop()
 ```
-
-</details>
