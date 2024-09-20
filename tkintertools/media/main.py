@@ -90,7 +90,8 @@ class VideoCanvas(containers.Canvas):
     ) -> None:
         """
         * `master`: parent widget
-        * `control`: whether to enable the built-in UI
+        * `controls`: whether to enable the built-in UI
+        * `loop`: whether the video loops automatically
         * `click_pause`: whether to pause when clicked
         * `expand`: the mode of expand, `x` is horizontal, and `y` is vertical
         * `zoom_item`: whether or not to scale its items
@@ -112,7 +113,7 @@ class VideoCanvas(containers.Canvas):
         if click_pause:
             self.bind("<ButtonRelease-1>", lambda _: (
                 self._player.toggle_pause() if self._player else None,
-                self._play_button._toggle()), "+")
+                self._play_button._toggle() if self._controls else None), "+")
 
     @typing_extensions.override
     def _initialization(self) -> None:
@@ -256,8 +257,8 @@ class VideoCanvas(containers.Canvas):
             command=lambda p: self._player.set_volume(p)
             if self._player else None)
         _FullscreenToggleButton(
-            self._control_bar, (1230*k, 10*k), (40*k, 40*k),
-            command=self.master.fullscreen, fontsize=round(20*k)
+            self._control_bar, (1230*k, 10*k), (40*k, 40*k), fontsize=round(20*k),
+            command=getattr(self.master, "fullscreen", lambda _: None)
         )
 
     def _display_control_bar(self, value: bool) -> None:

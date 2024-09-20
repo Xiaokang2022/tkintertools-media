@@ -13,6 +13,20 @@ Changelog / 更新日志
 > * 🟠 **Deprecated / 弃用**
 > * 🟤 **Refactored / 重构**
 
+🔖 `1.1.1`
+-----------
+
+🟣 **Fixed / 修复**
+
+- Fixed some incorrect docstrings  
+修复了部分错误的文档字符串
+
+- Fixed a bug where clicking on the screen to pause the video would give an error when closing the bottom control bar  
+修复了关闭底部控制栏时点击画面暂停视频会报错的 bug
+
+- Fixed a bug where using the bottom control bar would result in an error when using a nested canvas  
+修复了嵌套使用画布时使用底部控制栏会报错的 bug
+
 🔖 `1.1.0`
 -----------
 
