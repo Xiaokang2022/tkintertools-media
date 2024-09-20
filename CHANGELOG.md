@@ -16,6 +16,8 @@ Changelog / 更新日志
 🔖 `1.1.1`
 -----------
 
+🕓 *Release Date / 发布日期 : 2024-09-20*
+
 🟣 **Fixed / 修复**
 
 - Fixed some incorrect docstrings  
