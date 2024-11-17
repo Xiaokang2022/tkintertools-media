@@ -31,7 +31,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "tkintertools>=3.0.0rc2",
+    "tkintertools>=3.0.0rc4",
     "pillow>=10.0.0",
     "ffpyplayer>=4.5.0",
     "typing_extensions",

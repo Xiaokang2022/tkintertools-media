@@ -30,5 +30,5 @@ Provides:
 
 from .main import *
 
-__version__ = "1.1.1"
+__version__ = "1.1.2"
 __author__ = "Xiaokang2022 <2951256653@qq.com>"

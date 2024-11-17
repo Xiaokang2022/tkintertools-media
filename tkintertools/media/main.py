@@ -34,8 +34,8 @@ class _CustomizedWidget(virtual.Widget, abc.ABC):
 
     def _theme(self, dark: bool) -> None:
         """Switch the icon theme of the widget"""
-        if self._images:
-            self._images[0].destroy()
+        if self.images:
+            self.images[0].destroy()
         images.StillImage(
             self, image=self.master.master._icons[
                 self._icon]["dark" if dark else "light"])
@@ -68,7 +68,7 @@ class _PlayButton(widgets.Button, _CustomizedWidget):
         """Force to change the icon image"""
         self._icon = "pause" if self._icon == "play" else "play"
         self._theme(manager.get_color_mode() == "dark")
-        self._images[0].zoom((1, 1))
+        self.images[0].zoom((1, 1))
 
 
 class VideoCanvas(containers.Canvas):
@@ -133,8 +133,8 @@ class VideoCanvas(containers.Canvas):
                     callback=True), "+")
 
     @typing_extensions.override
-    def _re_place(self) -> None:
-        containers.Canvas._re_place(self)
+    def re_place(self) -> None:
+        containers.Canvas.re_place(self)
         self.update_idletasks()
         if self._player is not None:
             self._resize()
