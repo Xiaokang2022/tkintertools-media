@@ -168,6 +168,11 @@ class VideoCanvas(containers.Canvas):
         self._player.close_player()
         self._player = self._schedule = None
 
+    @typing_extensions.override
+    def destroy(self) -> None:
+        self.close()
+        containers.Canvas.destroy(self)
+
     def _play(self, init_prams: dict[str, bool] | None = None) -> None:
         """Refresh the canvas"""
         start = time.time()
